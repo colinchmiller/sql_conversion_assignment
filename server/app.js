@@ -16,7 +16,7 @@ app.get('/data', function(req,res){
 
     //SQL Query > SELECT data from table
     pg.connect(connectionString, function (err, client, done) {
-        var query = client.query("SELECT id, name, location FROM people ORDER BY name ASC");
+        var query = client.query("SELECT id, name, location, age, spirit_animal, address FROM people ORDER BY name ASC");
 
         // Stream results back one row at a time, push into results array
         query.on('row', function (row) {
@@ -26,6 +26,7 @@ app.get('/data', function(req,res){
         // After all data is returned, close connection and return results
         query.on('end', function () {
             client.end();
+            //console.log("The data getting sent back down: ", results);
             return res.json(results);
         });
 
@@ -38,11 +39,14 @@ app.get('/data', function(req,res){
 
 // Add a new person
 app.post('/data', function(req,res){
-    console.log(req);
+    //console.log(req);
 
     var addedPerson = {
         "name" : req.body.peopleAdd,
-        "location" : req.body.locationAdd
+        "location" : req.body.locationAdd,
+        "age" : req.body.ageAdd,
+        "spiritAnimal" : req.body.spiritAnimalAdd,
+        "address" : req.body.addressAdd
     };
 
     pg.connect(connectionString, function (err, client) {
@@ -54,7 +58,8 @@ app.post('/data', function(req,res){
         //console.log(query);
         //client.query(query);
 
-        client.query("INSERT INTO people (name, location) VALUES ($1, $2) RETURNING id", [addedPerson.name, addedPerson.location],
+        client.query("INSERT INTO people (name, location, age, spirit_animal, address) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+            [addedPerson.name, addedPerson.location, addedPerson.age, addedPerson.spiritAnimal, addedPerson.address],
             function(err, result) {
                 if(err) {
                     console.log("Error inserting data: ", err);
@@ -69,14 +74,23 @@ app.post('/data', function(req,res){
 });
 
 app.delete('/data', function(req,res){
-    console.log(req.body.id);
+    //console.log(req.body.id);
+    pg.connect(connectionString, function (err, client) {
 
-    Person.findByIdAndRemove({"_id" : req.body.id}, function(err, data){
-        if(err) console.log(err);
-        res.send(data);
+      client.query("DELETE FROM people WHERE id = ($1)", [req.body.id], function (err, result){
+          if (err) {
+              console.log("Error deleting the data: ", err);
+              res.send(false);
+          }
+          res.send(true);
+      });
+
     });
 
-
+    //Person.findByIdAndRemove({"_id" : req.body.id}, function(err, data){
+    //    if(err) console.log(err);
+    //    res.send(data);
+    //});
 });
 
 app.get("/*", function(req,res){
