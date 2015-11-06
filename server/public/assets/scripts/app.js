@@ -1,20 +1,32 @@
+var values = {};
+
 $(document).ready(function(){
-   $("#search").submit(function(event){
-      event.preventDefault();
-      var values = {};
+   $("#search").submit(findSomeone);
+      //getData(values);
 
-      $.each($(this).serializeArray(), function(i, field){
-         values[field.name] = field.value;
-      });
-
-      getData(values);
-   });
 
    $("#addSomeone").submit(addSomeone);
    $("#peopleContainer").on('click', '.delete', deletePerson);
 
    getData();
 });
+
+function findSomeone(event){
+   event.preventDefault();
+   var values = {};
+
+   $.each($(this).serializeArray(), function(i, field){
+      values[field.name] = field.value;
+   });
+   $.ajax({
+      type: "GET",
+      url: "/find",
+      data: values,
+      success: function(data){
+         console.log(data);
+      }
+   })
+}
 
 function getData(values){
    $.ajax({

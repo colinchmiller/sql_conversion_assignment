@@ -37,6 +37,26 @@ app.get('/data', function(req,res){
     });
 });
 
+//Find a person
+app.get('/find', function(req,res){
+    var results = [];
+
+    pg.connect(connectionString, function (err, client){
+        var query = client.query("SELECT id, name, location, age, spirit_animal, address from people WHERE name == ($1)", [req.body.name],
+        function(err, result){
+            if (err){
+                console.log("Error searching for data:", err)
+            }
+            query.on('row', function(row){
+                results.push(row);
+                return res.json(results);
+            });
+
+        });
+    });
+});
+
+
 // Add a new person
 app.post('/data', function(req,res){
     //console.log(req);
